@@ -1,0 +1,142 @@
+1)SELECT COUNT(*) AS SalesCount
+FROM cryptopunkdata
+WHERE utc_timestamp BETWEEN '2018-01-01' AND '2021-12-31';
+
+2)SELECT 
+    name,
+    token_id,
+    eth_price, 
+    usd_price, 
+    utc_timestamp AS `date`
+FROM cryptopunkdata
+ORDER BY usd_price DESC
+LIMIT 5;
+
+
+3)WITH TransactionRanked AS (
+    SELECT 
+        name, 
+        eth_price, 
+        usd_price, 
+        utc_timestamp AS `event`, 
+        ROW_NUMBER() OVER (ORDER BY utc_timestamp) AS RowNum
+    FROM cryptopunkdata
+)
+SELECT 
+    name, 
+    eth_price, 
+    usd_price, 
+    event, 
+    AVG(usd_price) OVER (
+        ORDER BY RowNum ROWS BETWEEN 49 PRECEDING AND CURRENT ROW
+    ) AS MovingAvgUSDPrice
+FROM TransactionRanked
+ORDER BY RowNum;
+
+
+4)SELECT 
+    name, 
+    AVG(usd_price) AS average_price
+FROM cryptopunkdata
+GROUP BY name
+ORDER BY average_price DESC;
+
+
+5)  SELECT 
+    DAYNAME(utc_timestamp) AS DayOfWeek,
+    COUNT(*) AS SalesCount,
+    AVG(eth_price) AS AverageETHPrice
+FROM cryptopunkdata
+GROUP BY DAYNAME(utc_timestamp)
+ORDER BY SalesCount ASC;
+
+
+6) SELECT 
+    CONCAT(
+        'CryptoPunk #', CAST(token_id AS CHAR), 
+        ' was sold for $', CAST(ROUND(usd_price, 3) AS CHAR), 
+        ' on ', DATE_FORMAT(utc_timestamp, '%Y-%m-%d')
+    ) AS summary
+FROM cryptopunkdata;
+
+
+7)CREATE VIEW `1919_purchases` AS
+SELECT *
+FROM cryptopunkdata
+WHERE transaction_hash = '0x1919db36ca2fa2e15f9000fd9cdc2edcf863e685';
+
+
+
+8)SELECT
+    CASE 
+        WHEN ROUND(`eth_price`, -2) BETWEEN 0 AND 100 THEN '0-100'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 101 AND 200 THEN '101-200'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 201 AND 300 THEN '201-300'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 301 AND 400 THEN '301-400'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 401 AND 500 THEN '401-500'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 501 AND 600 THEN '501-600'
+        WHEN ROUND(`eth_price`, -2) BETWEEN 601 AND 700 THE
+
+
+9)SELECT 
+    name, 
+    MAX('usd_price') AS price, 
+    'highest' AS status
+FROM 'cryptopunkdata'
+GROUP BY `name`;
+
+UNION
+
+
+10) SELECT 
+    'name', 
+    MIN(`usd_price') AS price, 
+    'lowest' AS status
+FROM `cryptopunkdata`
+GROUP BY 'name'
+
+ORDER BY 'name' ASC, status ASC;
+
+
+11) SELECT  
+    DATE_FORMAT(utc_timestamp, '%m/%Y') AS MonthYear,
+    ROUND(SUM(usd_price), -2) AS TotalVolume
+FROM cryptopunkdata
+GROUP BY DATE_FORMAT(utc_timestamp, '%m/%Y')
+ORDER BY MonthYear ASC;
+
+
+12)SELECT COUNT(*) AS TransactionCount
+FROM `cryptopunkdata`
+WHERE (`token_id` = '0x1919db36ca2fa2e15f9000fd9cdc2edcf863e685' 
+       OR `transaction_hash` = '0x1919db36ca2fa2e15f9000fd9cdc2edcf863e685')
+AND `utc_timestamp` BETWEEN '2019-01-01' AND '2021-12-31';
+
+
+13) CREATE TEMPORARY TABLE DailyPriceData AS
+SELECT 
+    DATE(utc_timestamp) AS event_date, -- Extract only the date portion
+    usd_price,
+    AVG(usd_price) OVER (PARTITION BY DATE(utc_timestamp)) AS daily_avg_price
+FROM cryptopunkdata;
+
+------------------------------------
+a)SELECT 
+    event_date,
+    AVG(usd_price) AS estimated_daily_avg
+FROM DailyPriceData
+WHERE usd_price >= 0.1 * daily_avg_price -- Filter out outliers
+GROUP BY event_date
+ORDER BY event_date ASC;
+
+ B ) CREATE TEMPORARY TABLE daily_averages AS
+SELECT
+    `event_date`,
+    `usd_price`,
+    AVG(`usd_price`) OVER (PARTITION BY `event_date`) AS daily_avg_price
+FROM `cryptopunkdata`;
+
+
+
+
+
